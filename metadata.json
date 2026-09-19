@@ -1,0 +1,6 @@
+{
+  "name": "FeedWise AI",
+  "description": "Intelligent cattle feed & silage quality analyzer, Flieg score calculator, and dairy ration optimization platform for farmers and cooperatives.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
