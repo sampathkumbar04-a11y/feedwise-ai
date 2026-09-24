@@ -2,6 +2,7 @@ import React from 'react';
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useAuth, UserRole } from '../../context/AuthContext';
+import { useAgriTheme } from '../../context/AgriThemeContext';
 import { Language } from '../../data/translations';
 import {
   Sun,
@@ -11,7 +12,11 @@ import {
   Camera,
   Bot,
   Layers,
+  Sprout,
+  Wheat,
 } from 'lucide-react';
+import { OfflineStatusBadge } from '../common/OfflineStatusBadge';
+import { PWAInstallButton } from '../common/PWAInstallButton';
 
 interface NavbarProps {
   id?: string;
@@ -19,6 +24,9 @@ interface NavbarProps {
   onOpenChat: () => void;
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  isOnline: boolean;
+  onToggleSimulateOffline?: () => void;
+  isSimulatedOffline?: boolean;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -27,10 +35,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenChat,
   activeTab,
   setActiveTab,
+  isOnline,
+  onToggleSimulateOffline,
+  isSimulatedOffline,
 }) => {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const { user, setRole } = useAuth();
+  const { scenery, setScenery } = useAgriTheme();
 
   const roleLabels: Record<UserRole, string> = {
     farmer: 'Dairy Farmer (किसान)',
@@ -42,7 +54,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header
       id={id}
-      className="sticky top-0 z-40 border-b border-stone-200 bg-white/90 backdrop-blur-md dark:border-stone-800 dark:bg-stone-900/90"
+      className="sticky top-0 z-40 border-b border-stone-200/80 bg-white/80 backdrop-blur-md dark:border-stone-800/80 dark:bg-stone-900/80"
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Brand Logo & Name */}
@@ -81,6 +93,18 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Action Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Offline / Online Network Connectivity Badge */}
+          <OfflineStatusBadge
+            isOnline={isOnline}
+            onToggleSimulate={onToggleSimulateOffline}
+            isSimulated={isSimulatedOffline}
+          />
+
+          {/* In-App PWA Install Button */}
+          <div className="hidden sm:block">
+            <PWAInstallButton compact />
+          </div>
+
           {/* Quick AI Assistant Button */}
           <button
             type="button"
@@ -129,6 +153,28 @@ export const Navbar: React.FC<NavbarProps> = ({
               <option value="kn">ಕನ್ನಡ (Kannada)</option>
             </select>
           </div>
+
+          {/* Agricultural Scenery Switcher */}
+          <button
+            type="button"
+            onClick={() => setScenery(scenery === 'lush-pasture' ? 'golden-harvest' : 'lush-pasture')}
+            className={`rounded-lg p-2 transition-colors flex items-center gap-1.5 ${
+              scenery === 'lush-pasture'
+                ? 'text-emerald-700 bg-emerald-50 hover:bg-emerald-100 dark:text-emerald-300 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/50'
+                : 'text-amber-700 bg-amber-50 hover:bg-amber-100 dark:text-amber-300 dark:bg-amber-950/60 dark:hover:bg-amber-900/50'
+            }`}
+            title={`Farm Background: ${scenery === 'lush-pasture' ? 'Dairy Farmer & Cows in Pasture' : 'Farmer Feeding Cattle Herd'}. Click to toggle.`}
+            aria-label="Toggle farmer and cows background"
+          >
+            {scenery === 'lush-pasture' ? (
+              <Sprout className="h-4 w-4" />
+            ) : (
+              <Wheat className="h-4 w-4 text-amber-500" />
+            )}
+            <span className="hidden lg:inline text-[11px] font-semibold">
+              {scenery === 'lush-pasture' ? 'Farmer & Cows' : 'Herd Feeding'}
+            </span>
+          </button>
 
           {/* Theme Toggle */}
           <button

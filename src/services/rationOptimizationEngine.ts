@@ -32,8 +32,8 @@ export function optimizeCattleRation(
   const targetTDNKg = +(maintenanceTDN + milkTDN).toFixed(2);
 
   // 4. Calcium & Phosphorus in Grams
-  const targetCalciumGrams = Math.round(bw * 0.045 + milk * 3.2);
-  const targetPhosphorusGrams = Math.round(bw * 0.032 + milk * 2.1);
+  const calciumTargetGrams = Math.round(bw * 0.045 + milk * 3.2);
+  const phosphorusTargetGrams = Math.round(bw * 0.032 + milk * 2.1);
 
   // 5. Daily Water Requirement (Liters)
   const dailyWaterRequirement = Math.round(35 + milk * 4.2);

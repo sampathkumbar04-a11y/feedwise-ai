@@ -29,54 +29,76 @@ export const GaugeChart: React.FC<GaugeChartProps> = ({
   else if (clamped < 65) strokeColor = '#f59e0b'; // amber
   else if (clamped < 80) strokeColor = '#14b8a6'; // teal
 
+  const gaugeHeight = Math.round(size * 0.85);
+
   return (
-    <div id={id} className="relative flex flex-col items-center justify-center">
-      <svg
-        width={size}
-        height={size * 0.85}
-        viewBox={`0 0 ${size} ${size}`}
-        className="overflow-visible"
+    <div
+      id={id}
+      className="relative inline-flex flex-col items-center justify-center select-none"
+      style={{ width: size }}
+    >
+      <div
+        className="relative flex items-center justify-center"
+        style={{ width: size, height: gaugeHeight }}
       >
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="currentColor"
-          className="text-stone-200 dark:text-stone-800"
-          strokeWidth={strokeWidth}
-          strokeDasharray={`${arcLength} ${circumference}`}
-          strokeLinecap="round"
-          transform={`rotate(135 ${size / 2} ${size / 2})`}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={strokeColor}
-          strokeWidth={strokeWidth}
-          strokeDasharray={`${arcLength} ${circumference}`}
-          strokeDashoffset={strokeDashoffset}
-          strokeLinecap="round"
-          transform={`rotate(135 ${size / 2} ${size / 2})`}
-          className="transition-all duration-1000 ease-out"
-        />
-      </svg>
-      <div className="absolute top-[42%] flex flex-col items-center text-center">
-        <span className="text-3xl font-extrabold tracking-tight text-stone-900 dark:text-white">
-          {clamped}
-        </span>
-        {label && (
-          <span className="text-xs font-semibold uppercase tracking-wider text-stone-500 dark:text-stone-400">
-            {label}
+        <svg
+          width={size}
+          height={gaugeHeight}
+          viewBox={`0 0 ${size} ${gaugeHeight}`}
+          className="overflow-visible"
+        >
+          {/* Background Track Arc */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke="currentColor"
+            className="text-stone-200 dark:text-stone-800"
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${arcLength} ${circumference}`}
+            strokeLinecap="round"
+            transform={`rotate(135 ${size / 2} ${size / 2})`}
+          />
+          {/* Active Value Arc (Green Line / Progress Arc) */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            fill="none"
+            stroke={strokeColor}
+            strokeWidth={strokeWidth}
+            strokeDasharray={`${arcLength} ${circumference}`}
+            strokeDashoffset={strokeDashoffset}
+            strokeLinecap="round"
+            transform={`rotate(135 ${size / 2} ${size / 2})`}
+            className="transition-all duration-1000 ease-out"
+          />
+        </svg>
+
+        {/* Centered Score & Metric Label inside the gauge arc */}
+        <div
+          className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none"
+          style={{ paddingTop: `${Math.round(size * 0.04)}px` }}
+        >
+          <span className="text-4xl font-extrabold tracking-tight text-stone-900 dark:text-white leading-none">
+            {clamped}
           </span>
-        )}
+          {label && (
+            <span className="mt-1.5 text-[11px] font-bold uppercase tracking-wider text-stone-500 dark:text-stone-400 max-w-[130px] leading-tight text-center px-1">
+              {label}
+            </span>
+          )}
+        </div>
       </div>
+
+      {/* Sublabel (Quality Grade / Status) below the gauge */}
       {subLabel && (
-        <span className="mt-1 text-xs font-medium text-stone-600 dark:text-stone-300">
-          {subLabel}
-        </span>
+        <div className="mt-2 text-center">
+          <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300 border border-stone-200 dark:border-stone-700">
+            {subLabel}
+          </span>
+        </div>
       )}
     </div>
   );

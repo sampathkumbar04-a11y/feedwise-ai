@@ -16,15 +16,25 @@ export const ScanOverlayCanvas: React.FC<ScanOverlayCanvasProps> = ({ id, report
     if (!ctx) return;
 
     const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.src = report.imageUrl;
+    // Only set crossOrigin if loading an external HTTP/HTTPS URL
+    if (report.imageUrl.startsWith('http://') || report.imageUrl.startsWith('https://')) {
+      img.crossOrigin = 'anonymous';
+    }
 
-    img.onload = () => {
+    const renderOverlay = (imageLoaded: boolean) => {
       canvas.width = 600;
       canvas.height = 400;
 
-      // Draw base image
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      if (imageLoaded) {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      } else {
+        // Fallback dark gradient background if image load error occurs
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        grad.addColorStop(0, '#1c1917');
+        grad.addColorStop(1, '#0c0a09');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
 
       // Semi-transparent spectral scan grid
       ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
@@ -78,27 +88,29 @@ export const ScanOverlayCanvas: React.FC<ScanOverlayCanvasProps> = ({ id, report
       ctx.stroke();
 
       // HUD Detection Tag
-      ctx.fillStyle = 'rgba(21, 128, 61, 0.85)';
-      ctx.fillRect(105, 85, 200, 24);
+      ctx.fillStyle = report.overallScore < 50 ? 'rgba(220, 38, 38, 0.85)' : report.overallScore < 70 ? 'rgba(217, 119, 6, 0.85)' : 'rgba(21, 128, 61, 0.85)';
+      ctx.fillRect(105, 85, 240, 24);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 12px sans-serif';
-      ctx.fillText(
-        `DM: ${report.nutritionalValues.dryMatter}% | CP: ${report.nutritionalValues.crudeProtein}%`,
-        112,
-        102
-      );
+      const hudText = report.fliegData 
+        ? `DM: ${report.nutritionalValues.dryMatter}% | pH: ${report.fliegData.pH} | Flieg: ${report.fliegData.fliegScore}`
+        : `DM: ${report.nutritionalValues.dryMatter}% | CP: ${report.nutritionalValues.crudeProtein}%`;
+      ctx.fillText(hudText, 112, 102);
 
       // Particle/fiber analysis badge
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
-      ctx.fillRect(105, 290, 240, 24);
-      ctx.fillStyle = '#a7f3d0';
       ctx.font = '11px sans-serif';
-      ctx.fillText(
-        `Chop Length: ${report.physicalTexture} (OK)`,
-        112,
-        306
-      );
+      const textureText = report.moldDetected ? `MOLD ALERT: ${report.physicalTexture}` : `Texture: ${report.physicalTexture}`;
+      const textWidth = ctx.measureText(textureText).width;
+      const badgeWidth = Math.max(260, textWidth + 24);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+      ctx.fillRect(105, 290, badgeWidth, 24);
+      ctx.fillStyle = report.moldDetected ? '#fca5a5' : '#a7f3d0';
+      ctx.fillText(textureText, 112, 306);
     };
+
+    img.onload = () => renderOverlay(true);
+    img.onerror = () => renderOverlay(false);
+    img.src = report.imageUrl;
   }, [report]);
 
   return (

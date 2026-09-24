@@ -69,7 +69,7 @@ export const Modal: React.FC<ModalProps> = ({
             <X className="h-5 w-5" />
           </button>
         </div>
-        <div className="overflow-y-auto py-4 flex-1">{children}</div>
+        <div className="overflow-y-auto py-4 flex-1" data-lenis-prevent>{children}</div>
       </div>
     </div>
   );

@@ -4,7 +4,8 @@ import { FliegGrade, FliegResult } from '../types';
  * Calculates the Flieg Score and fermentation evaluation for silage.
  * Standard formula:
  * Flieg Index = 220 + (2 * DryMatter% - 15) - 40 * pH
- * Normalizes to standard 0-100 scale and evaluates acid ratios.
+ * Corrected for aerobic stability, secondary clostridial fermentation,
+ * and high-moisture/high-pH penalties in whole-crop and grass silages.
  */
 export function calculateFliegScore(params: {
   pH: number;
@@ -15,8 +16,25 @@ export function calculateFliegScore(params: {
 }): FliegResult {
   const { pH, dryMatterPercent } = params;
 
-  // Standard scientific Flieg formula
-  const rawScore = 220 + (2 * dryMatterPercent - 15) - 40 * pH;
+  // Base Flieg formula
+  let rawScore = 220 + (2 * dryMatterPercent - 15) - 40 * pH;
+
+  // Modern biological correction:
+  // In silage, pH > 4.3 signifies incomplete lactic acidification, aerobic heating,
+  // or secondary clostridial / enterobacterial fermentation. Uncorrected Flieg formula
+  // artificially inflates score for dry silages (>38% DM) even with high pH.
+  if (pH > 4.3) {
+    const phExcess = pH - 4.3;
+    // Scale penalty smoothly based on how far pH deviates from optimal lactic preservation
+    const penalty = phExcess * 38 + (phExcess > 0.8 ? 15 : 0);
+    rawScore -= penalty;
+  }
+
+  // Also penalize extreme waterlogged silage (DM < 25%) where clostridial butyric risk escalates
+  if (dryMatterPercent < 25) {
+    rawScore -= (25 - dryMatterPercent) * 2.5;
+  }
+
   const clampedScore = Math.max(0, Math.min(100, Math.round(rawScore)));
 
   let grade: FliegGrade;
@@ -41,7 +59,7 @@ export function calculateFliegScore(params: {
   } else if (clampedScore >= 41) {
     grade = 'Fair';
     fermentationQualitySummary =
-      'Moderate fermentation. Higher acetic acid content and elevated pH indicating slower initial acidification.';
+      'Moderate fermentation. Higher acetic acid content and elevated pH indicating slower initial acidification or heat damage.';
     feedingAdvisory =
       'Suitable for maintenance or dry cows. Blend with sweet silage or dry hay to prevent intake depression.';
     aerobicStabilityHours = 48;
@@ -62,10 +80,12 @@ export function calculateFliegScore(params: {
   }
 
   // Estimated acid ratios based on pH and score
-  const lacticPercent = Math.max(15, Math.min(85, Math.round(clampedScore * 0.75 + (5.5 - pH) * 8)));
-  const butyricPercent = Math.max(0, Math.min(30, Math.round((100 - clampedScore) * 0.22)));
+  const lacticPercent = Math.max(10, Math.min(88, Math.round(clampedScore * 0.72 + Math.max(0, 5.0 - pH) * 8)));
+  const butyricPercent = clampedScore < 40 
+    ? Math.min(35, Math.round((45 - clampedScore) * 0.65 + (pH > 5.0 ? 8 : 0)))
+    : Math.max(0, Math.min(8, Math.round((80 - clampedScore) * 0.1)));
   const aceticPercent = Math.max(5, 100 - lacticPercent - butyricPercent);
-  const ammoniaN = Math.max(4, Math.min(22, +( (pH - 3.8) * 6.5 + (100 - clampedScore) * 0.08 ).toFixed(1)));
+  const ammoniaN = Math.max(3.5, Math.min(24, +( (pH - 3.7) * 6.0 + (100 - clampedScore) * 0.09 ).toFixed(1)));
 
   return {
     fliegScore: clampedScore,

@@ -41,6 +41,61 @@ export type QualityGrade =
   | 'Grade D (Substandard)'
   | 'Grade E (Hazardous)';
 
+export type SafetyRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'Insufficient data';
+
+export interface FeedSafetyAssessment {
+  id: string;
+  sampleId: string;
+  sampleName: string;
+  feedType: FeedType;
+  timestamp: string;
+  safetyScore: number; // 0 - 100
+  overallRiskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'Insufficient data';
+  ureaRisk: SafetyRiskLevel;
+  silicaRisk: SafetyRiskLevel;
+  fungalRisk: SafetyRiskLevel;
+  mycotoxinRisk: SafetyRiskLevel;
+  ureaDetails?: string;
+  silicaDetails?: string;
+  fungalDetails?: string;
+  mycotoxinDetails?: string;
+  visualIndicators?: {
+    fungalMouldObserved: boolean;
+    discolorationLevel: 'Normal' | 'Mild Discoloration' | 'Severe Discoloration';
+    foreignMaterialObserved: boolean;
+    abnormalAppearance: boolean;
+    visualConfidenceScore: number; // 0 - 100
+    notes?: string;
+  };
+  aiFindings: string[];
+  farmerAdvisory: string;
+  disclaimer: string;
+  hasVisualImage: boolean;
+  hasNutritionalData: boolean;
+  isOfflineEvaluation: boolean;
+}
+
+export type PhysicalTextureType =
+  | 'Crisp & Long-cut (19-25mm)'
+  | 'Medium Crisp Chop (12-19mm)'
+  | 'Fine Over-chopped (5-10mm)'
+  | 'Sludge / Mushy & Waterlogged'
+  | 'Dry & Coarse-cut'
+  | 'Clumped with Fungal Hyphae'
+  | 'Crisp & Long-cut'
+  | 'Slightly Chopped'
+  | 'Fine Over-chopped'
+  | 'Sludge / Mushy'
+  | 'Succulent & Finely Sliced'
+  | 'Coarse Stem Fractions'
+  | 'Crisp & Dry Fibrous'
+  | 'Fine Chaff (Bhusa Cut)'
+  | 'Long Stem Hay'
+  | 'Granular Meal / Mash'
+  | 'Pelleted Compound'
+  | 'Coarse Flaked Cake'
+  | string;
+
 export interface FeedScanReport {
   id: string;
   timestamp: string;
@@ -54,13 +109,38 @@ export interface FeedScanReport {
   spoilageRisk: 'Low' | 'Moderate' | 'High' | 'Severe';
   moldDetected: boolean;
   mycotoxinRiskLevel: 'Safe' | 'Guarded' | 'Unsafe';
-  physicalTexture: 'Crisp & Long-cut' | 'Slightly Chopped' | 'Fine Over-chopped' | 'Sludge / Mushy';
+  physicalTexture: PhysicalTextureType;
   odorProfile: 'Sweet & Aromatic' | 'Lactic / Mild Fruity' | 'Pungent Vinegar' | 'Foul Butyric / Mold';
   nutritionalValues: NutritionValues;
   fliegData?: FliegResult;
   recommendations: string[];
   safetyWarning?: string;
+  safetyAssessment?: FeedSafetyAssessment;
   assessedByRole?: string;
+}
+
+export interface CooperativeBatch {
+  id: string; // e.g. BATCH-2026-09-001
+  farmerName: string;
+  village: string; // dairy society / cooperative
+  feedType: string;
+  lotName: string;
+  timestamp: string;
+  status: string;
+  procurementRate: string;
+  procurementRateDetails?: {
+    baseRate: string;
+    incentiveOrDeduction?: string;
+    note: string;
+  };
+  overallScore: number;
+  grade: QualityGrade;
+  fliegScore?: number;
+  crudeProtein?: number;
+  scanReport?: FeedScanReport;
+  isVerified?: boolean;
+  verifiedBy?: string;
+  verificationDate?: string;
 }
 
 export interface Cattle {
@@ -119,6 +199,14 @@ export interface WeatherRiskStatus {
   moldRiskScore: number; // 0 - 100
   mitigationSteps: string[];
   silageStorageAlert: string;
+  weatherCondition?: string;
+  weatherCode?: number;
+  lastUpdated?: string;
+  isLiveLocation?: boolean;
+  isCached?: boolean;
+  latitude?: number;
+  longitude?: number;
+  rainForecastSummary?: string;
 }
 
 export interface ChatMessage {

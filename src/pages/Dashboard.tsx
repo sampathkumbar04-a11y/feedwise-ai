@@ -14,7 +14,10 @@ import {
   Sparkles,
   ArrowRight,
   ShieldCheck,
+  ShieldAlert,
   AlertTriangle,
+  Leaf,
+  Sprout,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -81,6 +84,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
             >
               <Flame className="h-4 w-4 text-amber-400" />
               {t('calculateFlieg')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('safety')}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/20 transition-colors backdrop-blur-xs border border-white/15"
+            >
+              <ShieldAlert className="h-4 w-4 text-emerald-400" />
+              Feed Safety Scanner
             </button>
             <button
               type="button"
@@ -252,97 +263,132 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Right Column: Herd Status & Weather Risk */}
+        {/* Right Column: Herd Status & Weather Risk (Side Section with Botanical Leaf Background) */}
         <div className="lg:col-span-4 space-y-6">
-          {/* Weather & THI Card */}
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
-              <h4 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
-                <CloudSun className="h-4 w-4 text-amber-500" /> Farm Climate & THI
-              </h4>
-              <button
-                type="button"
-                onClick={() => setActiveTab('weather')}
-                className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold"
-              >
-                Details
-              </button>
+          {/* Weather & THI Card with Organic Leaf Background */}
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-900/15 dark:border-emerald-500/25 shadow-xs group">
+            {/* Relatable Agricultural Leaf Background */}
+            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+              <img
+                src="/leaf_texture.jpg"
+                alt="Agricultural crop leaves"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover object-center scale-105 opacity-35 dark:opacity-25 transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-emerald-50/90 dark:from-stone-900/90 dark:via-stone-900/85 dark:to-emerald-950/90 backdrop-blur-[2px]" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-radial from-emerald-500/10 to-transparent pointer-events-none" />
             </div>
 
-            <div className="mt-3 space-y-3 text-xs">
-              <div className="flex justify-between items-center">
-                <span className="text-stone-500">Location</span>
-                <span className="font-semibold text-stone-800 dark:text-stone-200">
-                  {weatherStatus.location}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-stone-500">Temperature & Humidity</span>
-                <span className="font-semibold text-stone-800 dark:text-stone-200">
-                  {weatherStatus.temperatureC}°C • {weatherStatus.humidityPercent}% RH
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-stone-500">Heat Stress Severity</span>
-                <span className="font-bold text-amber-600 dark:text-amber-400">
-                  {weatherStatus.heatStressLevel}
-                </span>
+            <div className="relative z-10 p-5">
+              <div className="flex items-center justify-between pb-3 border-b border-emerald-900/10 dark:border-emerald-500/15">
+                <h4 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                  <CloudSun className="h-4 w-4 text-amber-500" />
+                  <span>Farm Climate & THI</span>
+                </h4>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100/90 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/90 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    <Leaf className="h-2.5 w-2.5 text-emerald-600" />
+                    Live Field
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('weather')}
+                    className="text-xs text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 font-semibold"
+                  >
+                    Details
+                  </button>
+                </div>
               </div>
 
-              <div className="rounded-xl bg-amber-50 dark:bg-amber-950/30 p-2.5 border border-amber-200 dark:border-amber-900/60 text-amber-900 dark:text-amber-300 text-[11px]">
-                {weatherStatus.silageStorageAlert}
+              <div className="mt-3 space-y-3 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-stone-600 dark:text-stone-400">Location</span>
+                  <span className="font-semibold text-stone-800 dark:text-stone-200">
+                    {weatherStatus.location}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-stone-600 dark:text-stone-400">Temperature & Humidity</span>
+                  <span className="font-semibold text-stone-800 dark:text-stone-200">
+                    {weatherStatus.temperatureC}°C • {weatherStatus.humidityPercent}% RH
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-stone-600 dark:text-stone-400">Heat Stress Severity</span>
+                  <span className="font-bold text-amber-600 dark:text-amber-400">
+                    {weatherStatus.heatStressLevel}
+                  </span>
+                </div>
+
+                <div className="rounded-xl bg-amber-500/15 dark:bg-amber-950/40 p-2.5 border border-amber-300/60 dark:border-amber-900/60 text-amber-950 dark:text-amber-300 text-[11px] backdrop-blur-xs">
+                  {weatherStatus.silageStorageAlert}
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Herd Quick Selection */}
-          <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-xs dark:border-stone-800 dark:bg-stone-900">
-            <div className="flex items-center justify-between pb-3 border-b border-stone-100 dark:border-stone-800">
-              <h4 className="text-sm font-bold text-stone-900 dark:text-white">
-                Dairy Cattle Herd ({cattleList.length})
-              </h4>
+          {/* Herd Quick Selection with Organic Leaf Background */}
+          <div className="relative overflow-hidden rounded-2xl border border-emerald-900/15 dark:border-emerald-500/25 shadow-xs group">
+            {/* Relatable Agricultural Leaf Background */}
+            <div className="absolute inset-0 pointer-events-none z-0 overflow-hidden">
+              <img
+                src="/leaf_texture.jpg"
+                alt="Agricultural crop leaves"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover object-bottom scale-105 opacity-35 dark:opacity-25 transition-transform duration-700 group-hover:scale-110"
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/85 to-emerald-50/90 dark:from-stone-900/90 dark:via-stone-900/85 dark:to-emerald-950/90 backdrop-blur-[2px]" />
+            </div>
+
+            <div className="relative z-10 p-5">
+              <div className="flex items-center justify-between pb-3 border-b border-emerald-900/10 dark:border-emerald-500/15">
+                <h4 className="text-sm font-bold text-stone-900 dark:text-white flex items-center gap-1.5">
+                  <Sprout className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  <span>Dairy Cattle Herd ({cattleList.length})</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('cattle')}
+                  className="text-xs text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 font-semibold"
+                >
+                  Manage
+                </button>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {cattleList.map((cow) => (
+                  <div
+                    key={cow.id}
+                    onClick={() => setActiveTab('ration')}
+                    className="flex items-center justify-between p-2.5 rounded-xl bg-white/75 dark:bg-stone-800/75 border border-emerald-900/10 dark:border-emerald-500/15 hover:border-emerald-500/40 hover:bg-white/95 dark:hover:bg-stone-800/95 cursor-pointer transition-all text-xs backdrop-blur-xs shadow-2xs"
+                  >
+                    <div>
+                      <span className="font-bold text-stone-800 dark:text-stone-200 block">
+                        {cow.name}
+                      </span>
+                      <span className="text-[10px] text-stone-500">
+                        {cow.breed} • {cow.category}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 block">
+                        {cow.dailyMilkYieldLiters} L / day
+                      </span>
+                      <span className="text-[10px] text-stone-400">Fat: {cow.milkFatPercent}%</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <button
                 type="button"
-                onClick={() => setActiveTab('cattle')}
-                className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold"
+                onClick={() => setActiveTab('ration')}
+                className="mt-4 w-full rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 py-2.5 text-xs font-semibold shadow-xs transition-colors flex items-center justify-center gap-1.5"
               >
-                Manage
+                <Scale className="h-3.5 w-3.5" />
+                Open TMR Ration Balancer
               </button>
             </div>
-
-            <div className="mt-3 space-y-2">
-              {cattleList.map((cow) => (
-                <div
-                  key={cow.id}
-                  onClick={() => setActiveTab('ration')}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-stone-50 dark:hover:bg-stone-800/40 cursor-pointer transition-colors text-xs"
-                >
-                  <div>
-                    <span className="font-bold text-stone-800 dark:text-stone-200 block">
-                      {cow.name}
-                    </span>
-                    <span className="text-[10px] text-stone-500">
-                      {cow.breed} • {cow.category}
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 block">
-                      {cow.dailyMilkYieldLiters} L / day
-                    </span>
-                    <span className="text-[10px] text-stone-400">Fat: {cow.milkFatPercent}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('ration')}
-              className="mt-4 w-full rounded-xl bg-stone-100 py-2 text-xs font-semibold text-stone-700 hover:bg-stone-200 dark:bg-stone-800 dark:text-stone-200 dark:hover:bg-stone-700 transition-colors flex items-center justify-center gap-1.5"
-            >
-              <Scale className="h-3.5 w-3.5" />
-              Open TMR Ration Balancer
-            </button>
           </div>
         </div>
       </div>

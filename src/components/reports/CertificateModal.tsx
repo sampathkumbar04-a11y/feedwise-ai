@@ -65,6 +65,25 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             <p><strong>Digestible Energy (TDN):</strong> {report.nutritionalValues.totalDigestibleNutrients}%</p>
             <p><strong>Spoilage / Mold Status:</strong> {report.spoilageRisk} Risk (Mold: {report.moldDetected ? 'Detected' : 'Negative'})</p>
           </div>
+
+          {report.safetyAssessment && (
+            <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-800 text-xs">
+              <div className="flex items-center justify-between mb-1.5">
+                <strong className="text-stone-800 dark:text-stone-200">
+                  Feed Safety & Adulteration Screening:
+                </strong>
+                <span className="font-bold text-emerald-700 dark:text-emerald-400">
+                  Score: {report.safetyAssessment.safetyScore}/100 ({report.safetyAssessment.overallRiskLevel})
+                </span>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px] text-stone-600 dark:text-stone-400">
+                <div>Urea Risk: <strong>{report.safetyAssessment.ureaRisk}</strong></div>
+                <div>Silica Risk: <strong>{report.safetyAssessment.silicaRisk}</strong></div>
+                <div>Fungal Risk: <strong>{report.safetyAssessment.fungalRisk}</strong></div>
+                <div>Mycotoxin: <strong>{report.safetyAssessment.mycotoxinRisk}</strong></div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Action buttons */}

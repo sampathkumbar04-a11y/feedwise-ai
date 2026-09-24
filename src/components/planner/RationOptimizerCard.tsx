@@ -173,9 +173,19 @@ export const RationOptimizerCard: React.FC<RationOptimizerCardProps> = ({
 
       {/* Advisory notes */}
       <div className="mt-5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 p-3.5 border border-emerald-200/60 dark:border-emerald-900/40">
-        <h5 className="text-xs font-bold uppercase text-emerald-800 dark:text-emerald-300 mb-1.5 flex items-center gap-1.5">
-          <Sparkles className="h-3.5 w-3.5 text-emerald-600" /> Feeding Guidelines & Minerals
-        </h5>
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+          <h5 className="text-xs font-bold uppercase text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-600" /> Feeding Guidelines & Minerals
+          </h5>
+          <div className="flex items-center gap-2 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+            <span className="rounded bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5">
+              Ca: {plan.calciumTargetGrams}g/day
+            </span>
+            <span className="rounded bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5">
+              P: {plan.phosphorusTargetGrams}g/day
+            </span>
+          </div>
+        </div>
         <ul className="space-y-1 text-xs text-stone-600 dark:text-stone-300">
           {plan.advisorNotes.map((note, i) => (
             <li key={i} className="flex items-start gap-1.5">

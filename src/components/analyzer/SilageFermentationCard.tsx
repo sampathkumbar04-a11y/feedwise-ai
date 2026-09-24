@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FliegResult } from '../../types';
 import { calculateFliegScore } from '../../services/fliegScoreCalculator';
 import { QualityBadge } from '../common/QualityBadge';
@@ -17,6 +17,14 @@ export const SilageFermentationCard: React.FC<SilageFermentationCardProps> = ({
   const [pH, setPH] = useState<number>(initialFliegData?.pH ?? 3.9);
   const [dryMatter, setDryMatter] = useState<number>(initialFliegData?.dryMatter ?? 33);
   const [isCustomMode, setIsCustomMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (initialFliegData) {
+      setPH(initialFliegData.pH);
+      setDryMatter(initialFliegData.dryMatter);
+      setIsCustomMode(false);
+    }
+  }, [initialFliegData]);
 
   const activeResult: FliegResult = isCustomMode
     ? calculateFliegScore({ pH, dryMatterPercent: dryMatter })

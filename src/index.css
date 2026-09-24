@@ -6,10 +6,6 @@
   }
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 /* Custom scrollbars for clean UI */
 ::-webkit-scrollbar {
   width: 6px;
@@ -24,4 +20,17 @@ html {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(120, 113, 108, 0.4);
+}
+
+/* Agricultural Furrow & Topographic Micro-pattern */
+.agri-topo-pattern {
+  background-image: radial-gradient(rgba(16, 185, 129, 0.12) 1px, transparent 1px),
+                    radial-gradient(rgba(245, 158, 11, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+.dark .agri-topo-pattern {
+  background-image: radial-gradient(rgba(52, 211, 153, 0.1) 1px, transparent 1px);
+  background-size: 24px 24px;
 }

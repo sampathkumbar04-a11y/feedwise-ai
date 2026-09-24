@@ -1,20 +1,31 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Cattle, FeedScanReport, WeatherRiskStatus } from '../types';
-import { INITIAL_CATTLE, INITIAL_SCAN_REPORTS } from '../data/mockData';
-import { evaluateFarmWeatherRisk } from '../services/weatherRiskEngine';
+import { Cattle, FeedScanReport, FeedSafetyAssessment, WeatherRiskStatus } from '../types';
+import { INITIAL_CATTLE, INITIAL_SCAN_REPORTS, INITIAL_SAFETY_ASSESSMENTS } from '../data/mockData';
+import { evaluateFarmWeatherRisk, getCachedWeatherData } from '../services/weatherRiskEngine';
+import { safeGetItem, safeSetItem, sanitizeScanReportsForStorage } from '../utils/storage';
 
 interface AppDataContextType {
   cattleList: Cattle[];
   scanReports: FeedScanReport[];
+  safetyAssessments: FeedSafetyAssessment[];
   selectedCattleId: string;
   setSelectedCattleId: (id: string) => void;
   weatherStatus: WeatherRiskStatus;
-  refreshWeather: (temp?: number, humidity?: number, rain?: number) => void;
+  setWeatherStatus: (status: WeatherRiskStatus) => void;
+  refreshWeather: (
+    temp?: number,
+    humidity?: number,
+    rain?: number,
+    location?: string,
+    options?: Parameters<typeof evaluateFarmWeatherRisk>[4]
+  ) => void;
   addCattle: (cattle: Omit<Cattle, 'id' | 'lastUpdated'>) => void;
   updateCattle: (id: string, cattle: Partial<Cattle>) => void;
   deleteCattle: (id: string) => void;
   addScanReport: (report: FeedScanReport) => void;
   deleteScanReport: (id: string) => void;
+  clearAllScans: () => void;
+  saveSafetyAssessment: (assessment: FeedSafetyAssessment, linkToReportId?: string) => void;
   feedCostOverrides: Record<string, number>;
   setFeedCostOverride: (feedId: string, cost: number) => void;
 }
@@ -23,42 +34,60 @@ const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cattleList, setCattleList] = useState<Cattle[]>(() => {
-    const saved = localStorage.getItem('feedwise_cattle');
-    return saved ? JSON.parse(saved) : INITIAL_CATTLE;
+    return safeGetItem<Cattle[]>('feedwise_cattle', INITIAL_CATTLE);
   });
 
   const [scanReports, setScanReports] = useState<FeedScanReport[]>(() => {
-    const saved = localStorage.getItem('feedwise_scans');
-    return saved ? JSON.parse(saved) : INITIAL_SCAN_REPORTS;
+    const loaded = safeGetItem<FeedScanReport[]>('feedwise_scans', INITIAL_SCAN_REPORTS);
+    return Array.isArray(loaded) && loaded.length > 0 ? loaded : INITIAL_SCAN_REPORTS;
+  });
+
+  const [safetyAssessments, setSafetyAssessments] = useState<FeedSafetyAssessment[]>(() => {
+    return safeGetItem<FeedSafetyAssessment[]>('feedwise_safety_assessments', INITIAL_SAFETY_ASSESSMENTS);
   });
 
   const [selectedCattleId, setSelectedCattleId] = useState<string>(
     cattleList[0]?.id || 'c1'
   );
 
-  const [weatherStatus, setWeatherStatus] = useState<WeatherRiskStatus>(() =>
-    evaluateFarmWeatherRisk(33, 67, 12)
-  );
+  const [weatherStatus, setWeatherStatus] = useState<WeatherRiskStatus>(() => {
+    const cached = getCachedWeatherData();
+    if (cached?.weatherStatus) {
+      return cached.weatherStatus;
+    }
+    return evaluateFarmWeatherRisk(33, 67, 12);
+  });
 
   const [feedCostOverrides, setFeedCostOverrides] = useState<Record<string, number>>(() => {
-    const saved = localStorage.getItem('feedwise_costs');
-    return saved ? JSON.parse(saved) : {};
+    return safeGetItem<Record<string, number>>('feedwise_costs', {});
   });
 
   useEffect(() => {
-    localStorage.setItem('feedwise_cattle', JSON.stringify(cattleList));
+    safeSetItem('feedwise_cattle', cattleList);
   }, [cattleList]);
 
   useEffect(() => {
-    localStorage.setItem('feedwise_scans', JSON.stringify(scanReports));
+    // Sanitize before persisting to guarantee no QuotaExceededError
+    const safeScans = sanitizeScanReportsForStorage(scanReports);
+    safeSetItem('feedwise_scans', safeScans);
   }, [scanReports]);
 
   useEffect(() => {
-    localStorage.setItem('feedwise_costs', JSON.stringify(feedCostOverrides));
+    safeSetItem('feedwise_safety_assessments', safetyAssessments);
+  }, [safetyAssessments]);
+
+  useEffect(() => {
+    safeSetItem('feedwise_costs', feedCostOverrides);
   }, [feedCostOverrides]);
 
-  const refreshWeather = (temp: number = 33, humidity: number = 67, rain: number = 12) => {
-    setWeatherStatus(evaluateFarmWeatherRisk(temp, humidity, rain));
+  const refreshWeather = (
+    temp: number = 33,
+    humidity: number = 67,
+    rain: number = 12,
+    location: string = 'District Dairy Cluster / Farm',
+    options?: Parameters<typeof evaluateFarmWeatherRisk>[4]
+  ) => {
+    setWeatherStatus(evaluateFarmWeatherRisk(temp, humidity, rain, location, options));
   };
 
   const addCattle = (newCattle: Omit<Cattle, 'id' | 'lastUpdated'>) => {
@@ -97,6 +126,25 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
     setScanReports((prev) => prev.filter((r) => r.id !== id));
   };
 
+  const clearAllScans = () => {
+    setScanReports(INITIAL_SCAN_REPORTS);
+    safeSetItem('feedwise_scans', INITIAL_SCAN_REPORTS);
+  };
+
+  const saveSafetyAssessment = (assessment: FeedSafetyAssessment, linkToReportId?: string) => {
+    setSafetyAssessments((prev) => [assessment, ...prev.filter((a) => a.id !== assessment.id)]);
+
+    // Automatically synchronize into existing FeedScanReport if matched
+    const targetId = linkToReportId || assessment.sampleId;
+    setScanReports((prev) =>
+      prev.map((r) =>
+        r.id === targetId || r.sampleName === assessment.sampleName
+          ? { ...r, safetyAssessment: assessment }
+          : r
+      )
+    );
+  };
+
   const setFeedCostOverride = (feedId: string, cost: number) => {
     setFeedCostOverrides((prev) => ({ ...prev, [feedId]: cost }));
   };
@@ -106,15 +154,19 @@ export const AppDataProvider: React.FC<{ children: ReactNode }> = ({ children })
       value={{
         cattleList,
         scanReports,
+        safetyAssessments,
         selectedCattleId,
         setSelectedCattleId,
         weatherStatus,
+        setWeatherStatus,
         refreshWeather,
         addCattle,
         updateCattle,
         deleteCattle,
         addScanReport,
         deleteScanReport,
+        clearAllScans,
+        saveSafetyAssessment,
         feedCostOverrides,
         setFeedCostOverride,
       }}
